@@ -1,5 +1,5 @@
 .env
-.env.key
+.env.keys
 node_modules/
 test
 test/
