@@ -19,11 +19,11 @@ export const getUsers = async (req, res)=>{
 
 export const createUsers = async (req, res)=>{
     try {
-        const { name, number, role, passkey} = req.body;
+        const { name, number, role, password} = req.body;
 
         const{data, error}= await supabase
         .from('users')
-        .insert([{name, number, role, passkey}])
+        .insert([{name, number, role, password}])
         .select();
         
         if (error) {
