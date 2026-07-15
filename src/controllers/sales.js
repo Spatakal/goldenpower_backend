@@ -4,7 +4,8 @@ export const getSal = async(req, res)=>{
     try {
         const {data, error} = await supabase
         .from('sales')
-        .select('*');
+        .select('*')
+        .order("created_at",{ascending:false});
 
      if(error) {
          return res.status(400)
@@ -27,32 +28,12 @@ export const getSal = async(req, res)=>{
 export const createSal = async(req, res)=>{
     try {
         const {number, amount} = req.body;
- const cleanNumber = String(number).replace(/\D/g, "");
 
-let normalizedNumber = cleanNumber;
-
-if (cleanNumber.startsWith("91") && cleanNumber.length === 12) {
-  normalizedNumber = cleanNumber.slice(2);
-}
-
-// Validate 10 digit Indian mobile
-if (!/^[6-9]\d{9}$/.test(normalizedNumber)) {
-  return res.status(400).json({
-    success: false,
-    message: "Invalid Indian mobile number"
-  });
-}
-
-    if (!number) {
-      return res.status(400).json({
-        success: false,
-        message: "Phone number is required"
-      });
-    }
+        const normalizedNumber = req.number;
 
         const {data, error} = await supabase
         .from('sales')
-        .insert([{number, amount}])
+        .insert([{number:normalizedNumber, amount}])
         .select();
 
      if(error) {

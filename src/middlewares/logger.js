@@ -10,6 +10,7 @@ export default async function requestLogger(req, res, next) {
     req.socket.remoteAddress ||
     req.ip;
 
+
   ipRequests[ip] = (ipRequests[ip] || 0) + 1;
 
   let geo = {

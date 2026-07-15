@@ -4,7 +4,8 @@ export const getPrd = async (req, res)=> {
     try {
         const {data, error} = await supabase 
         .from('product')
-        .select('*');
+        .select('*')
+        .order("created_at",{ascending:false});
 
  if(error) {
          return res.status(400)
@@ -25,12 +26,12 @@ export const getPrd = async (req, res)=> {
 
 export const createPrd = async (req, res)=>{
 try {
-    const {product_name, brand_name} = req.body;
-  
-        const {data, error} = await supabase
-        .from('product')
-        .insert([{product_name, brand_name}])
-        .select();
+  const products = req.body; 
+
+const { data, error } = await supabase
+  .from('product')
+  .insert(products)
+  .select();
 
      if(error) {
          return res.status(400)

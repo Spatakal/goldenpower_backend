@@ -26,31 +26,9 @@ export const getLog = async(req, res)=>{
 
 export const upsertLog = async (req, res) => {
   try {
-   const { number, name, status } = req.body;
+   const { number, name, status, address, notes } = req.body;
 
-// Normalize Indian mobile number
-const cleanNumber = String(number).replace(/\D/g, "");
-
-let normalizedNumber = cleanNumber;
-
-if (cleanNumber.startsWith("91") && cleanNumber.length === 12) {
-  normalizedNumber = cleanNumber.slice(2);
-}
-
-// Validate 10 digit Indian mobile
-if (!/^[6-9]\d{9}$/.test(normalizedNumber)) {
-  return res.status(400).json({
-    success: false,
-    message: "Invalid Indian mobile number"
-  });
-}
-
-    if (!number) {
-      return res.status(400).json({
-        success: false,
-        message: "Phone number is required"
-      });
-    }
+   const normalizedNumber = req.number;
 
     // Check existing record
     const { data: exist, error: fetchError } = await supabase
@@ -75,12 +53,21 @@ if (!/^[6-9]\d{9}$/.test(normalizedNumber)) {
           message: "Number not found. Create new record."
         });
       }
-
-      // allow creating followup
-        if (status !== "followup" && status !== "done"){
+      
+     //check notes add or not
+      if (!notes) {
         return res.status(400).json({
           success: false,
-          message: "New records can only be created with followup or done status."
+          exists: false,
+          message: "add notes"
+        });
+      }
+
+      // allow creating followup
+        if (status !== "followup"){
+        return res.status(400).json({
+          success: false,
+          message: "New records can only be created with followup"
         });
       }
 
@@ -90,7 +77,9 @@ if (!/^[6-9]\d{9}$/.test(normalizedNumber)) {
           {
             number:normalizedNumber,
             name,
-           status
+           status,
+           address, 
+           notes 
           }
         ])
         .select()
@@ -129,61 +118,6 @@ if (!/^[6-9]\d{9}$/.test(normalizedNumber)) {
           success: true,
           exists: true,
           message: "Record already exists with followup status.",
-          actions: ["done", "remove"],
-          data: exist
-        });
-      }
-
-      if (status === "done") {
-        const { data: updated, error: updateError } = await supabase
-          .from("calllog")
-          .update({ status: status ,name:name})
-          .eq("number", number)
-          .select()
-          .single();
-
-        if (updateError) {
-          return res.status(400).json({
-            success: false,
-            error: updateError.message
-          });
-        }
-
-        return res.status(200).json({
-          success: true,
-          message: "Status updated to done.",
-          data: updated
-        });
-      }
-
-      if (status === "remove") {
-        const { error: deleteError } = await supabase
-          .from("calllog")
-          .delete()
-          .eq("number", number);
-
-        if (deleteError) {
-          return res.status(400).json({
-            success: false,
-            error: deleteError.message
-          });
-        }
-
-        return res.status(200).json({
-          success: true,
-          message: "Record removed successfully."
-        });
-      }
-    }
-
-    // EXIST DONE RECORD
-    if (exist.status === "done") {
-
-      if (status === "done") {
-        return res.status(200).json({
-          success: true,
-          exists: true,
-          message: "Record already completed.",
           actions: ["remove"],
           data: exist
         });
@@ -193,7 +127,7 @@ if (!/^[6-9]\d{9}$/.test(normalizedNumber)) {
         const { error: deleteError } = await supabase
           .from("calllog")
           .delete()
-          .eq("number", number);
+          .eq("number", normalizedNumber);
 
         if (deleteError) {
           return res.status(400).json({

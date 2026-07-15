@@ -2,10 +2,11 @@ import supabase from "../config/supabaseclient.js";
 
 export const getBal = async (req, res)=> {
     try {
-        const {data, error} = await supabase 
-        .from('balance')
-        .select('*')
-        .order("created_at", { ascending: false });
+const { data, error } = await supabase 
+  .from('balance')
+  .select('*')
+  .order('amount', { ascending: false })
+  .neq('status', 'settled'); 
 
  if(error) {
          return res.status(400)
@@ -26,12 +27,26 @@ export const getBal = async (req, res)=> {
 
 export const createBal = async (req, res)=>{
 try {
-    const {number, amount, status} = req.body;
-  
+        const {number, amount, name} = req.body;
+
+        const normalizedNumber = req.number;
+         
+        if (!name){
+            return res.status(400).json({
+                success:false,
+                message:"poda sotta"
+            })
+        }
         const {data, error} = await supabase
         .from('balance')
-        .insert([{number, amount, status}])
-        .select();
+        .insert([{
+             number:normalizedNumber,
+             name,
+             amount, 
+             status:"pending",
+             notes:"customer_balance"
+            }])
+        .select();        
 
      if(error) {
          return res.status(400)
@@ -42,7 +57,7 @@ try {
                detail:error.details
               });
             }
-        res.status(200) .json({message:"created", bal:data})
+        res.status(200) .json({message:"okay da sotta", bal:data})
     } catch (error) {
         res.status(500).json({
            error: 'server error'

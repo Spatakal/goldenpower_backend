@@ -20,10 +20,23 @@ export const getUsers = async (req, res)=>{
 export const createUsers = async (req, res)=>{
     try {
         const { name, number, role, password} = req.body;
+<<<<<<< HEAD
 
         const{data, error}= await supabase
         .from('users')
         .insert([{name, number, role, password}])
+=======
+        
+        const normalizedNumber = req.number;
+
+        const{data, error}= await supabase
+        .from('users')
+        .insert([{
+            name, 
+            number:normalizedNumber,
+            role,
+            password}])
+>>>>>>> bf4eeb2 (files are safe)
         .select();
         
         if (error) {

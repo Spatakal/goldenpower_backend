@@ -10,6 +10,7 @@ import salRoute from './salesroutes.js';
 import serRoute from './serviceroutes.js';
 import signRoute from './loginroutes.js';
 import dashboardRoutes from './dashboardRoutes.js';
+<<<<<<< HEAD
 import {attendanceSummary} from "../controllers/attendanceController.js";
 import { verifyToken } from "../middlewares/verify.js";
 import { adminOnly } from "../middlewares/verify.js";
@@ -28,5 +29,37 @@ router.use('/payments',verifyToken, adminOnly,hisRoute);
 router.use('/login',signRoute);
 router.get("/attendance", verifyToken, attendanceSummary);
 router.use('/dashboard', dashboardRoutes);
+=======
+import attendanceRoutes from "./attendanceroutes.js";
+import leadRoute from "./leadroutes.js";
+import customerRoute from './customerroutes.js';
+// import notificationRoute from './notificationroutes.js';
+import alertRoute from './alertroutes.js'
+import { verifyToken } from "../middlewares/verify.js";
+import { adminOnly } from "../middlewares/verify.js";
+import { validateMobile } from "../middlewares/validateNumber.js";
+import {tokenValid} from '../routes/tokenroutes.js'
+
+const router = express.Router();
+
+// verifyToken, adminOnly, validateMobile
+router.use('/users',verifyToken,userRoute);
+router.use('/calls',verifyToken,logRoute);
+router.use('/products',verifyToken,prdRoute);
+router.use('/sales',verifyToken,salRoute);
+router.use('/services',verifyToken,serRoute);
+router.use('/inventory', verifyToken,invRoute);
+router.use('/office',verifyToken, offRoute);
+router.use('/balance',verifyToken,balRoute);
+router.use('/payments',verifyToken,hisRoute);
+router.use('/customer',verifyToken,customerRoute);
+// router.use('/notification',notificationRoute);
+router.use('/alert',verifyToken,alertRoute);
+router.use('/login',validateMobile,signRoute);
+router.use("/stats", verifyToken,attendanceRoutes);
+router.use('/dashboard', verifyToken,dashboardRoutes);
+router.use('/lead',verifyToken,leadRoute);
+router.get("/valid",tokenValid);
+>>>>>>> bf4eeb2 (files are safe)
 
 export default router;
