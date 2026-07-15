@@ -10,7 +10,6 @@ import salRoute from './salesroutes.js';
 import serRoute from './serviceroutes.js';
 import signRoute from './loginroutes.js';
 import dashboardRoutes from './dashboardRoutes.js';
-<<<<<<< HEAD
 import {attendanceSummary} from "../controllers/attendanceController.js";
 import { verifyToken } from "../middlewares/verify.js";
 import { adminOnly } from "../middlewares/verify.js";
@@ -29,7 +28,6 @@ router.use('/payments',verifyToken, adminOnly,hisRoute);
 router.use('/login',signRoute);
 router.get("/attendance", verifyToken, attendanceSummary);
 router.use('/dashboard', dashboardRoutes);
-=======
 import attendanceRoutes from "./attendanceroutes.js";
 import leadRoute from "./leadroutes.js";
 import customerRoute from './customerroutes.js';
@@ -60,6 +58,5 @@ router.use("/stats", verifyToken,attendanceRoutes);
 router.use('/dashboard', verifyToken,dashboardRoutes);
 router.use('/lead',verifyToken,leadRoute);
 router.get("/valid",tokenValid);
->>>>>>> bf4eeb2 (files are safe)
 
 export default router;
