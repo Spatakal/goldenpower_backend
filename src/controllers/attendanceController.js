@@ -1,10 +1,6 @@
 import supabase from "../config/supabaseclient.js";
 
-<<<<<<< HEAD
-export const attendanceSummary = async (req, res) => {
-=======
 export const attendance = async (req, res) => { 
->>>>>>> bf4eeb2 (files are safe)
 
   try {
 
@@ -73,9 +69,6 @@ export const attendance = async (req, res) => {
 
   }
 
-<<<<<<< HEAD
-};
-=======
 };
 
 export const attendanceByMonth = async (req, res) => {
@@ -150,4 +143,3 @@ export const attendanceByMonth = async (req, res) => {
     });
   }
 };
->>>>>>> bf4eeb2 (files are safe)
