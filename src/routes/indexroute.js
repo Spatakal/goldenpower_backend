@@ -38,7 +38,7 @@ router.use('/alert',verifyToken,alertRoute);
 router.use('/login',validateMobile,signRoute);
 router.use("/stats", verifyToken,attendanceRoutes);
 router.use('/dashboard', verifyToken,dashboardRoutes);
-router.use('/lead',verifyToken,leadRoute);
+router.use('/lead',leadRoute);
 router.get("/valid",tokenValid);
 
 export default router;

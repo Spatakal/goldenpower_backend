@@ -8,13 +8,31 @@ export const getDashboard = async (req, res) => {
       .select("*", { count: "exact", head: true })
       .eq("status", "pending");
 
+    const { data: pendinglead } = await supabase
+      .from("leads")
+      .select(`id,work_type,status,customer:customer_id (
+            id,
+            name,
+            number,
+            address,
+          status
+          ),
+          assigned_user:assigned_to (
+            id,
+            name,
+            number,
+            role
+          )`)
+      .eq("status", "pending");
+
     const { data: progresslead } = await supabase
       .from("leads")
       .select(`id,work_type,status,customer:customer_id (
             id,
             name,
             number,
-            address
+            address,
+          status
           ),
           assigned_user:assigned_to (
             id,
@@ -56,11 +74,11 @@ export const getDashboard = async (req, res) => {
       .from("users")
       .select("*", { count: "exact", head: true })
       .eq("role", "employee");
- 
+
     // Service_alert
-const { data: servicealert, error } = await supabase
-  .from("service_alert")
-  .select(`
+    const { data: servicealert, error } = await supabase
+      .from("service_alert")
+      .select(`
     id,
     status,
     alert_date,
@@ -70,11 +88,12 @@ const { data: servicealert, error } = await supabase
         id,
         name,
         number,
-        address
+        address,
+          status
       )
     )
   `)
-  .eq("status", "due_soon");
+      .eq("status", "due_soon");
 
 
 
@@ -89,12 +108,12 @@ const { data: servicealert, error } = await supabase
 
     // Build summary
     const dashboardSummary = {
-      leads: { pending: pendingCount, progress: progresslead },
+      leads: { pending: pendingCount, progress: progresslead, pendings: pendinglead },
       customers: customerCount,
       balance: { customer: customerBalance, purchase: purchaseBalance },
       calllogs: followupCount,
       employees: employeeCount,
-      services:servicealert,
+      services: servicealert,
       totals: { revenue: totalRevenue }
     };
 
@@ -113,33 +132,34 @@ const { data: servicealert, error } = await supabase
 };
 
 
-export const getEmpDashboard = async (req,res) => {
+export const getEmpDashboard = async (req, res) => {
   try {
-    
+
     // Service_alert
-const { data: servicealert, error } = await supabase
-  .from("service_alert")
-  .select(`
+    const { data: servicealert, error } = await supabase
+      .from("service_alert")
+      .select(`
     id,
     status,
-    alert_date,
+                  alert_date,
     lead:lead_id (
       id,
       customer:customer_id (
         id,
         name,
         number,
-        address
+        address,
+          status
       )
     )
   `)
-  .eq("status", "due_soon");
+      .eq("status", "due_soon");
 
     // Build summary
     const empdashboardSummary = {
-      services:servicealert
+      services: servicealert
     };
-  res.status(200).json({ success: true, dashboard: empdashboardSummary });
+    res.status(200).json({ success: true, dashboard: empdashboardSummary });
 
   } catch (err) {
     console.error("Dashboard error:", error);

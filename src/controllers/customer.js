@@ -1,31 +1,83 @@
 import supabase from "../config/supabaseclient.js";
 
+
 export const getCust = async (req, res) => {
-    try {
-        const {data, count, error} =await supabase
-        .from("customer")
-        .select("*", { count: "exact" })
+  try {
+    const { data, count, error } = await supabase
+      .from("customer")
+      .select("*", { count: "exact" })
 
-        .order("created_at", {ascending:false} );
+      .order("created_at", { ascending: false });
 
-        if(error){
-            return res.status(400).json({
-                success:false,
-                message:error.message
-            });
+    if (error) {
+      return res.status(400).json({
+        success: false,
+        message: error.message
+      });
 
-        }
-            return res.status(200).json({
-            success:true,
-            data,
-            count
-            });
-    } catch (err) {
-        return res.status(500).json({ 
-      success: false, 
+    }
+    return res.status(200).json({
+      success: true,
+      data,
+      count
+    });
+  } catch (err) {
+    return res.status(500).json({
+      success: false,
       message: err.message
     });
+  }
+};
+
+export const createCust = async (req, res) => {
+  try {
+    const { name, number, address, status } = req.body;
+
+    // Validate required fields
+    if (!name || !number) {
+      return res.status(400).json({
+        success: false,
+        message: "Name and number are required",
+      });
     }
+
+    // Allowed statuses
+    const allowedStatuses = ["Fresh", "Regular", "Loyal"];
+    const customerStatus = allowedStatuses.includes(status) ? status : "Fresh";
+
+    const { data, error } = await supabase
+      .from("customer")
+      .insert([
+        {
+          name,
+          number,
+          address,
+          status: customerStatus,
+        },
+      ])
+      .select();
+
+    if (error) {
+      return res.status(400).json({
+        success: false,
+        code: error.code,
+        message: error.message,
+        detail: error.details,
+      });
+    }
+
+    return res.status(201).json({
+      success: true,
+      message: "Customer created successfully",
+      customer: data,
+    });
+  } catch (err) {
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      error: err.message,
+    });
+  }
 };
 
 
@@ -38,6 +90,7 @@ export const getCustSummary = async (req, res) => {
         name,
         number,
         address,
+        status,
         leads (
           id,
           status,
@@ -62,6 +115,7 @@ export const getCustSummary = async (req, res) => {
         name: cust.name,
         number: cust.number,
         address: cust.address,
+        status:cust.status,
         doneLeads,
         activeServices,
         closedServices
@@ -74,7 +128,6 @@ export const getCustSummary = async (req, res) => {
   }
 };
 
-
 export const getCustLead = async (req, res) => {
   try {
     const { customerId } = req.query;
@@ -84,7 +137,7 @@ export const getCustLead = async (req, res) => {
       .select(`
         id,
         customer:customer_id (
-          id, name, number, address
+          id, name, number, address, status
         ),
         lead:lead_id (
           id, work_type, status,
@@ -113,32 +166,32 @@ export const getCustLead = async (req, res) => {
       return res.status(400).json({ success: false, message: error.message });
     }
 
-if (!data || data.length === 0) {
-  const { data: custData, error: custError } = await supabase
-    .from("customer")
-    .select("id, name, number, address")
-    .eq("id", customerId)
-    .maybeSingle();
+    if (!data || data.length === 0) {
+      const { data: custData, error: custError } = await supabase
+        .from("customer")
+        .select("id, name, number, address, status")
+        .eq("id", customerId)
+        .maybeSingle();
 
-  if (custError) {
-    return res.status(400).json({ success: false, message: custError.message });
-  }
-
-  if (!custData) {
-    return res.status(404).json({ success: false, message: "Customer not found" });
-  }
-
-  // ✅ No record at all → return customer skeleton with no leads
-  return res.status(200).json({
-    success: true,
-    data: [
-      {
-        customer: custData,
-        leads: []
+      if (custError) {
+        return res.status(400).json({ success: false, message: custError.message });
       }
-    ]
-  });
-}
+
+      if (!custData) {
+        return res.status(404).json({ success: false, message: "Customer not found" });
+      }
+
+      // ✅ No record at all → return customer skeleton with no leads
+      return res.status(200).json({
+        success: true,
+        data: [
+          {
+            customer: custData,
+            leads: []
+          }
+        ]
+      });
+    }
     // ✅ Group by customer
     const grouped = {};
     data.forEach(row => {
@@ -165,5 +218,57 @@ if (!data || data.length === 0) {
 
   } catch (err) {
     return res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+export const updateCustStatus = async (req, res) => {
+  try {
+    const { id, status } = req.body;
+
+    // Basic validation
+    if (!id || !status) {
+      return res.status(400).json({
+        success: false,
+        message: "Missing customer id or status",
+      });
+    }
+
+    // Allowed statuses
+    const allowedStatuses = ["Fresh", "Regular", "Loyal"];
+    if (!allowedStatuses.includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid status. Must be Fresh, Regular, or Loyal",
+      });
+    }
+
+    // Update logic
+    const { data, error } = await supabase
+      .from("customer")
+      .update({ status })
+      .eq("id", id)
+      .select()
+      .single();
+
+    if (error) {
+      return res.status(400).json({
+        success: false,
+        code: error.code,
+        message: error.message,
+        detail: error.details,
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Customer status updated successfully",
+      customer: data,
+    });
+  } catch (err) {
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      error: err.message,
+    });
   }
 };
