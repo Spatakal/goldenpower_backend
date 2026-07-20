@@ -2,9 +2,7 @@ import { initializeApp, cert } from "firebase-admin/app";
 import { getMessaging } from "firebase-admin/messaging"; // 👈 Add this import
 import fs from "fs";
 
-const serviceAccount = JSON.parse(
-  fs.readFileSync(new URL("./serviceKey.json", import.meta.url))
-);
+const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_JSON);
 
 const app = initializeApp({
   credential: cert(serviceAccount),
