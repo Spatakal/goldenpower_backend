@@ -23,22 +23,22 @@ import {tokenValid} from '../routes/tokenroutes.js'
 const router = express.Router();
 
 // verifyToken, adminOnly, validateMobile
-router.use('/users',verifyToken,userRoute);
-router.use('/calls',verifyToken,logRoute);
-router.use('/products',verifyToken,prdRoute);
-router.use('/sales',verifyToken,salRoute);
-router.use('/services',verifyToken,serRoute);
-router.use('/inventory', verifyToken,invRoute);
-router.use('/office',verifyToken, offRoute);
-router.use('/balance',verifyToken,balRoute);
-router.use('/payments',verifyToken,hisRoute);
-router.use('/customer',customerRoute);
+router.use('/users',verifyToken,adminOnly,userRoute);
+router.use('/calls',verifyToken,adminOnly,logRoute);
+router.use('/products',verifyToken,adminOnly,prdRoute);
+router.use('/sales',verifyToken,adminOnly,salRoute);
+router.use('/services',verifyToken,adminOnly,serRoute);
+router.use('/inventory', verifyToken,adminOnly,invRoute);
+router.use('/office',verifyToken,offRoute);
+router.use('/balance',verifyToken,adminOnly,balRoute);
+router.use('/payments',verifyToken,adminOnly,hisRoute);
+router.use('/customer',verifyToken,adminOnly,customerRoute);
 // router.use('/notification',notificationRoute);
-router.use('/alert',alertRoute);
+router.use('/alert',verifyToken,alertRoute);
 router.use('/login',validateMobile,signRoute);
-router.use("/stats", verifyToken,attendanceRoutes);
-router.use('/dashboard', verifyToken,dashboardRoutes);
-router.use('/lead',leadRoute);
+router.use("/stats", verifyToken,adminOnly,attendanceRoutes);
+router.use('/dashboard', verifyToken,adminOnly,dashboardRoutes);
+router.use('/lead',verifyToken,leadRoute);
 router.get("/valid",tokenValid);
 
 export default router;
