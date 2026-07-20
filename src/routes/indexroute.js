@@ -9,7 +9,7 @@ import prdRoute from './productroutes.js';
 import salRoute from './salesroutes.js';
 import serRoute from './serviceroutes.js';
 import signRoute from './loginroutes.js';
-import dashboardRoutes from './dashboardRoutes.js';
+import dashboardRoutes from './dashboardroutes.js';
 import attendanceRoutes from "./attendanceroutes.js";
 import leadRoute from "./leadroutes.js";
 import customerRoute from './customerroutes.js';
