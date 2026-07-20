@@ -34,13 +34,12 @@ cron.schedule("21 9,13,18,17 * * *", async () => {
   timezone: "Asia/Kolkata" // Sets execution context to your local time zone
 });
 
-cron.schedule("55 22 * * *", async () => {
-  
-  await supabase
+cron.schedule("45 22 * * *", async () => {
+  const { error } = await supabase
     .from("sessions")
     .delete()
     .not("token_hash", "is", null); 
-
+    // deletes only rows where token_hash is NOT null
 
   if (error) {
     console.error("Failed to delete sessions:", error.message);

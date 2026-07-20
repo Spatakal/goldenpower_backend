@@ -32,15 +32,6 @@ export const getTask = async (req, res) => {
             name,
             number,
             role
-          ),
-          lead_items (
-            id,
-            qty,
-            product:product_id (
-              id,
-              product_name,
-              brand_name
-            )
           )
         `)
         .eq("id", id)
@@ -162,11 +153,10 @@ export const getLeademp = async (req, res) => {
  * Create a new task
  * - customer → name, number, address
  * - lead → workType, status
- * - lead_items → multiple products (product_id, qty)
  */
 export const createTask = async (req, res) => {
   try {
-    const { name, number, address, workType, products, assignedTo, notes } = req.body;
+    const { name, number, address, workType,assignedTo, notes } = req.body;
     const normalizedNumber = req.number || number;
 
     // 1. Initial validation
@@ -235,7 +225,7 @@ export const createTask = async (req, res) => {
         work_type: workType,
         status: "pending",
         assigned_to: assignedTo || null,
-        notes: workType === "sales" ? "sales" : notes || null
+        notes:notes || null
       }])
       .select()
       .single();
@@ -244,29 +234,11 @@ export const createTask = async (req, res) => {
       return res.status(400).json({ success: false, message: leadError.message });
     }
 
-    // 6. Insert multiple products into lead_items only if workType is sales
-    if (workType === "sales" && Array.isArray(products) && products.length > 0) {
-      const itemsToInsert = products.map(item => ({
-        lead_id: lead.id,
-        product_id: item.product_id,
-        qty: item.qty
-      }));
-
-      const { error: itemsError } = await supabase
-        .from("lead_items")
-        .insert(itemsToInsert);
-
-      if (itemsError) {
-        return res.status(400).json({ success: false, message: itemsError.message });
-      }
-    }
-
     return res.status(201).json({
       success: true,
       message: "Lead processed successfully",
       lead
     });
-
   } catch (error) {
     return res.status(500).json({ success: false, message: error.message });
   }

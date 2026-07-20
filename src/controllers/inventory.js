@@ -9,15 +9,7 @@ export const getStk = async (req, res) => {
     if (id) {
       const { data, error } = await supabase
         .from("inventory")
-        .select(`
-          *,
-          inventory_products (
-            id,
-            brand_name,
-            product_name,
-            qty
-          )
-        `)
+        .select(`*`)
         .eq("id", id)
         .single();
 
@@ -52,46 +44,23 @@ export const createStk = async (req, res) => {
       invoice,
       supplier_name,
       total_amount,
-      paid_amount = 0,
-      products = []
+      paid_amount = 0
     } = req.body;
-
-    if (!products || products.length === 0) {
-      return res.status(400).json({ success: false, message: "No products provided" });
-    }
 
     // Step 1: Insert inventory row (Removed supplier_number completely)
     const { data: inv, error: invErr } = await supabase
       .from("inventory")
       .insert([{
-        invoice,
         supplier_name,
         total_amount,
         paid_amount
       }])
       // Pulling supplier_name & invoice here to use in Step 3 safely
-      .select("id, total_amount, paid_amount, supplier_name, invoice") 
+      .select("id, total_amount, paid_amount, supplier_name") 
       .single();
 
     if (invErr) {
       return res.status(400).json({ success: false, message: invErr.message });
-    }
-
-    // Step 2: Format and insert multiple products linked to this inventory
-    const productRows = products.map(p => ({
-      brand_name: p.brand_name,
-      product_name: p.product_name,
-      qty: p.qty,
-      inventory_id: inv.id
-    }));
-
-    const { data: productData, error: prodErr } = await supabase
-      .from("inventory_products")
-      .insert(productRows)
-      .select("id, brand_name, product_name, qty");
-
-    if (prodErr) {
-      return res.status(400).json({ success: false, message: prodErr.message });
     }
 
     // Step 3: Automatically track balance if not paid in full
@@ -101,7 +70,7 @@ export const createStk = async (req, res) => {
         .from("balance")
         .insert([{
           name: inv.supplier_name,
-          number: inv.invoice || null, // Sets number equal to the invoice 
+          number: inv.id,
           amount: balanceAmount,
           status: "pending",
           notes: "purchase_balance"
@@ -114,9 +83,8 @@ export const createStk = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      message: "Inventory and products added successfully!",
-      inventory: inv,
-      products: productData
+      message: "Inventory added successfully!",
+      inventory: inv
     });
 
   } catch (error) {

@@ -83,7 +83,7 @@ export const getDashboard = async (req, res) => {
     status,
     alert_date,
     lead:lead_id (
-      id,
+      id),
       customer:customer_id (
         id,
         name,
@@ -143,7 +143,7 @@ export const getEmpDashboard = async (req, res) => {
     status,
                   alert_date,
     lead:lead_id (
-      id,
+      id),
       customer:customer_id (
         id,
         name,

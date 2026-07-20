@@ -115,7 +115,7 @@ export const getCustSummary = async (req, res) => {
         name: cust.name,
         number: cust.number,
         address: cust.address,
-        status:cust.status,
+        status: cust.status,
         doneLeads,
         activeServices,
         closedServices
@@ -136,25 +136,19 @@ export const getCustLead = async (req, res) => {
       .from("customer_lead_service")
       .select(`
         id,
-        customer:customer_id (
-          id, name, number, address, status
-        ),
-        lead:lead_id (
-          id, work_type, status,
-          users:assigned_to (
-            id, name, number, role
-          ),
-          lead_items (
-            id, qty,
-            product:product_id (
-              id, product_name, brand_name
-            )
-          )
-        ),
-        service_alert:service_alert_id (
-          id, status, months_interval, alert_date
-        )
-      `);
+    customer:customer_id (
+      id, name, number, address, status
+    ),
+    lead:lead_id (
+      id, work_type, status,
+      users:assigned_to (
+        id, name, number, role
+      )
+    ),
+    service_alert (
+      id, status, months_interval, alert_date
+    )
+  `);
 
     if (customerId) {
       query = query.eq("customer_id", customerId);

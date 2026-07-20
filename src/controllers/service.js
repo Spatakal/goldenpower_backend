@@ -7,7 +7,7 @@ export const getSer = async(req, res)=>{
         .from('service')
         .select('*')
         .order("created_at",{ascending:false});
-
+        
      if(error) {
          return res.status(400)
         .json({
