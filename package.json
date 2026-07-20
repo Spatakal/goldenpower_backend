@@ -5,8 +5,7 @@
   "main": "server.js",
   "scripts": {
     "dev": "dotenvx run -- nodemon server.js",
-    "start": "node server.js",
-    "build": "dotenvx run -f .env.production -- node server.js"
+    "start": "node server.js"
   },
   "keywords": [],
   "author": "",
