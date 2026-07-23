@@ -1,5 +1,8 @@
-// errorLogger.js
-export default function errorLogger(err, req, res, next) {
+import { createClient } from "@supabase/supabase-js";
+
+const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
+
+export default async function errorLogger(err, req, res, next) {
   const istNow = new Date().toLocaleString("en-IN", { timeZone: "Asia/Kolkata" });
 
   console.error("========== ERROR ==========");
@@ -10,18 +13,22 @@ export default function errorLogger(err, req, res, next) {
   console.error(`Stack    : ${err.stack}`);
   console.error("===========================\n");
 
-  // 🔑 Capture the error response body
   const errorResponse = { success: false, error: err.message };
 
-  // Log the response payload (pretty-print if JSON)
   console.error("========== ERROR RESPONSE ==========");
-  console.error(
-    typeof errorResponse === "object"
-      ? JSON.stringify(errorResponse, null, 2)
-      : errorResponse
-  );
+  console.error(JSON.stringify(errorResponse, null, 2));
   console.error("===================================\n");
 
-  // Send response to browser
+  // Save to DB
+  await supabase.from("logs").insert({
+    method: req.method,
+    url: req.originalUrl,
+    status: 500,
+    request_body: req.body || {},
+    response_body: errorResponse,
+    error_message: err.message,
+    error_stack: err.stack,
+  });
+
   res.status(500).json(errorResponse);
 }

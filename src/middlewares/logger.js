@@ -1,5 +1,7 @@
 import axios from "axios";
+import { createClient } from "@supabase/supabase-js";
 
+const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
 const ipRequests = {};
 
 export default async function requestLogger(req, res, next) {
@@ -48,18 +50,15 @@ export default async function requestLogger(req, res, next) {
     console.log("Geo Lookup Error:", error.message);
   }
 
-  // 🔑 Intercept response body so we can log it later
+  // Intercept response body
   const originalSend = res.send;
   res.send = function (body) {
-    res.locals.body = body; // store response body
+    res.locals.body = body;
     return originalSend.call(this, body);
   };
 
   console.log("\n========== REQUEST ==========");
-  console.log(
-    "Time      :",
-    new Date().toLocaleString("en-IN", { timeZone: "Asia/Kolkata" })
-  );
+  console.log("Time      :", new Date().toLocaleString("en-IN", { timeZone: "Asia/Kolkata" }));
   console.log("Method    :", req.method);
   console.log("URL       :", req.originalUrl);
   console.log("IP        :", ip);
@@ -72,17 +71,37 @@ export default async function requestLogger(req, res, next) {
   console.log("Count     :", ipRequests[ip]);
   console.log("Body      :", JSON.stringify(req.body || {}));
 
-  res.on("finish", () => {
+  res.on("finish", async () => {
+    const duration = Date.now() - start;
+
     console.log("\n========== RESPONSE ==========");
     console.log("Status    :", res.statusCode);
-    console.log("Duration  :", `${Date.now() - start}ms`);
+    console.log("Duration  :", `${duration}ms`);
     console.log(
       "Response  :",
       typeof res.locals.body === "object"
-        ? JSON.stringify(res.locals.body, null, 2) // pretty-print JSON
+        ? JSON.stringify(res.locals.body, null, 2)
         : res.locals.body
     );
     console.log("==============================\n");
+
+    // Save to DB
+    await supabase.from("logs").insert({
+      method: req.method,
+      url: req.originalUrl,
+      ip,
+      isp: geo.isp,
+      city: geo.city,
+      state: geo.state,
+      country: geo.country,
+      latitude: geo.lat,
+      longitude: geo.lon,
+      count: ipRequests[ip],
+      request_body: req.body || {},
+      status: res.statusCode,
+      duration_ms: duration,
+      response_body: res.locals.body || null,
+    });
   });
 
   next();
