@@ -14,7 +14,9 @@ import attendanceRoutes from "./attendanceroutes.js";
 import leadRoute from "./leadroutes.js";
 import customerRoute from './customerroutes.js';
 // import notificationRoute from './notificationroutes.js';
-import alertRoute from './alertroutes.js'
+import alertRoute from './alertroutes.js';
+import loggerRoute from '../middlewares/logger.js';
+import errorLogger from '../middlewares/errorlogger.js';
 import { verifyToken } from "../middlewares/verify.js";
 import { adminOnly } from "../middlewares/verify.js";
 import { validateMobile } from "../middlewares/validateNumber.js";
@@ -40,5 +42,8 @@ router.use("/stats", verifyToken,attendanceRoutes);
 router.use('/dashboard', verifyToken,adminOnly,dashboardRoutes);
 router.use('/lead',verifyToken,leadRoute);
 router.get("/valid",tokenValid);
+router.get("/log",loggerRoute);
+router.get("/err",errorLogger);
+
 
 export default router;
