@@ -17,7 +17,6 @@ app.use(cors());
 app.use(requestLogger);
 
 app.use('/api', apiRoute);
-
 //ROUTE
 app.get('/', (req, res) => {
     res.send('Welcome to Golden Power Battery API');
