@@ -303,7 +303,6 @@ export const updateTaskStatus = async (req, res) => {
         .insert([{
           lead_id: updated.id,
           alert_date: alertDate.toISOString().split("T")[0],
-          alert_time: "09:00:00",
           months_interval: interval
         }]);
 
