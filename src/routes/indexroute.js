@@ -45,5 +45,4 @@ router.get("/valid",tokenValid);
 router.get("/log",loggerRoute);
 router.get("/err",errorLogger);
 
-
 export default router;
