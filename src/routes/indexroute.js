@@ -39,7 +39,7 @@ router.use('/customer',verifyToken,adminOnly,customerRoute);
 router.use('/alert',verifyToken,alertRoute);
 router.use('/login',validateMobile,signRoute);
 router.use("/stats", verifyToken,attendanceRoutes);
-router.use('/dashboard', verifyToken,adminOnly,dashboardRoutes);
+router.use('/dashboard', verifyToken,dashboardRoutes);
 router.use('/lead',verifyToken,leadRoute);
 router.get("/valid",tokenValid);
 router.get("/log",loggerRoute);

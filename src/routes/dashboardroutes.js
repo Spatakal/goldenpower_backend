@@ -6,6 +6,6 @@ import { adminOnly } from "../middlewares/verify.js";
 const router = express.Router();
 
 router.get("/dashboard",adminOnly, getDashboard);
-router.get("/empdashboard", adminOnly,getEmpDashboard);
+router.get("/empdashboard",getEmpDashboard);
 
 export default router;

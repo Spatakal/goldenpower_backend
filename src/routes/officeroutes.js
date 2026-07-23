@@ -5,6 +5,6 @@ import { adminOnly } from "../middlewares/verify.js";
 const router = express.Router();
 
 router.get('/off',offCtrl.getOff);
-router.post('/createoff', adminOnly,offCtrl.createOff)
+router.post('/createoff',offCtrl.createOff)
 
 export default router;
