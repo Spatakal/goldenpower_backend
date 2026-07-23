@@ -10,7 +10,6 @@ export default async function requestLogger(req, res, next) {
     req.socket.remoteAddress ||
     req.ip;
 
-
   ipRequests[ip] = (ipRequests[ip] || 0) + 1;
 
   let geo = {
@@ -49,10 +48,18 @@ export default async function requestLogger(req, res, next) {
     console.log("Geo Lookup Error:", error.message);
   }
 
+  // 🔑 Intercept response body so we can log it later
+  const originalSend = res.send;
+  res.send = function (body) {
+    res.locals.body = body; // store response body
+    return originalSend.call(this, body);
+  };
+
   console.log("\n========== REQUEST ==========");
-  console.log("Time      :", new Date().toLocaleString("en-IN", {
-    timeZone: "Asia/Kolkata",
-  }));
+  console.log(
+    "Time      :",
+    new Date().toLocaleString("en-IN", { timeZone: "Asia/Kolkata" })
+  );
   console.log("Method    :", req.method);
   console.log("URL       :", req.originalUrl);
   console.log("IP        :", ip);
@@ -69,6 +76,12 @@ export default async function requestLogger(req, res, next) {
     console.log("\n========== RESPONSE ==========");
     console.log("Status    :", res.statusCode);
     console.log("Duration  :", `${Date.now() - start}ms`);
+    console.log(
+      "Response  :",
+      typeof res.locals.body === "object"
+        ? JSON.stringify(res.locals.body, null, 2) // pretty-print JSON
+        : res.locals.body
+    );
     console.log("==============================\n");
   });
 
