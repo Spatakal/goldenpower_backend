@@ -12,7 +12,7 @@ export default async function errorLogger(err, req, res, next) {
   console.error(`Message  : ${err.message}`);
   console.error(`Stack    : ${err.stack}`);
   console.error("===========================\n");
-
+  
   const errorResponse = { success: false, error: err.message };
 
   console.error("========== ERROR RESPONSE ==========");
