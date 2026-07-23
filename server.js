@@ -8,7 +8,6 @@ import supabase from './src/config/supabaseclient.js';
 import cron from "node-cron";
 import { checkAndSendDueAlerts } from "./src/controllers/notificationController.js"; // Adjust path as needed
 
-
 const app = express();
 const port = process.env.PORT;
 const port_1 = process.env.PORT_1;
