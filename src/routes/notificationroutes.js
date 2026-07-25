@@ -1,8 +1,9 @@
 import express from "express";
-import * as notifyCtrl from "../controllers/notificationController.js";
+import { notify } from "../controllers/notificationController";
 
 const router = express.Router();
 
-router.post("/notify", notifyCtrl.getnotify);
+// Route: /api/notification/notify
+router.all("/notify", notify);
 
 export default router;

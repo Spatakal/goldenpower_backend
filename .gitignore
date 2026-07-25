@@ -6,3 +6,4 @@ test/
 old_zip.zip
 src/config/serviceKey.json
 .env.production
+README.md

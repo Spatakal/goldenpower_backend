@@ -6,7 +6,6 @@ export const checkAndSendDueAlerts = async () => {
     console.log(`[${new Date().toISOString()}] Starting automated service alert check...`);
 
     // 1️⃣ Fetch all service alerts where status is 'due_soon'
-    // We can use Supabase's inner join syntax to fetch lead and customer details in a single query
     const { data: alerts, error: alertError } = await supabase
       .from("service_alert")
       .select(`
@@ -30,7 +29,7 @@ export const checkAndSendDueAlerts = async () => {
       return { success: true, message: "No pending alerts." };
     }
 
-    // 2️⃣ Fetch all active FCM tokens belonging strictly to admins
+    // 2️⃣ Fetch active FCM tokens belonging strictly to admins
     const { data: adminSessions, error: sessionError } = await supabase
       .from("sessions")
       .select("fcm_token")
@@ -44,17 +43,14 @@ export const checkAndSendDueAlerts = async () => {
       return { success: false, message: "No admin tokens available." };
     }
 
-    // Extract raw tokens into an array
-    const adminTokens = adminSessions.map(session => session.fcm_token);
-
-    // 3️⃣ Loop through each alert and send to all admins
+    const adminTokens = adminSessions.map((session) => session.fcm_token);
     let notificationsSent = 0;
 
+    // 3️⃣ Loop through alerts and push via Firebase
     for (const alert of alerts) {
       const customer = alert.lead?.customer;
-      if (!customer) continue; // Skip if database data is fragmented
+      if (!customer) continue;
 
-      // Build the payload
       const notificationPayload = {
         notification: {
           title: "🚨 Due Soon: Service Alert Reminder",
@@ -62,14 +58,15 @@ export const checkAndSendDueAlerts = async () => {
         }
       };
 
-      // Send to all active admin devices using sendEachForMulticast
       const response = await messaging.sendEachForMulticast({
         tokens: adminTokens,
         notification: notificationPayload.notification
       });
 
       notificationsSent += response.successCount;
-      console.log(`Sent alert for Lead ID ${alert.lead_id}. Success: ${response.successCount}, Failure: ${response.failureCount}`);
+      console.log(
+        `Sent alert for Lead ID ${alert.lead_id}. Success: ${response.successCount}, Failure: ${response.failureCount}`
+      );
     }
 
     return {
@@ -84,9 +81,21 @@ export const checkAndSendDueAlerts = async () => {
   }
 };
 
-// Keep this wrapper if you still want an manual endpoint to test it via Postman
-export const triggerManualCheck = async (req, res) => {
+// Wrapper function to expose as an API endpoint handler
+export const notify = async (req, res) => {
+  // Security Key Check
+  const clientKey = req.headers["x-cron-secret"] || req.query.secret;
+  const secretKey = process.env.CRON_SECRET || "your_fallback_secret_key";
+
+  if (clientKey !== secretKey) {
+    return res.status(401).json({
+      success: false,
+      message: "Unauthorized: Invalid Cron Secret Key"
+    });
+  }
+
   const result = await checkAndSendDueAlerts();
+
   if (result.success) {
     return res.status(200).json(result);
   } else {
