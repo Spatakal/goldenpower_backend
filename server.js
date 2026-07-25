@@ -17,12 +17,12 @@ app.use(cors());
 app.use(requestLogger);
 
 app.use('/api', apiRoute);
-
 //ROUTE
 app.get('/', (req, res) => {
     res.send('Welcome to Golden Power Battery API');
 });
 
+<<<<<<< HEAD
 // // Schedule configuration: 'minute hour day-of-month month day-of-week'
 // // 0 9,13,18 * * * means: Minute 0 of Hours 9, 13 (1 PM), and 18 (6 PM) everyday.
 // cron.schedule("21 9,13,18,17 * * *", async () => {
@@ -61,6 +61,8 @@ app.get('/', (req, res) => {
 //   }
 // });
 
+=======
+>>>>>>> 22514fa138cc8326508849cb75a10a19a2e5d477
 app.use(errorLogger);
 app.listen(port, () => {
     console.log(`Server is running on port ${port}`);
