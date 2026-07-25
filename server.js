@@ -21,6 +21,7 @@ app.use('/api', apiRoute);
 app.get('/', (req, res) => {
     res.send('Welcome to Golden Power Battery API');
 });
+
 // // Schedule configuration: 'minute hour day-of-month month day-of-week'
 // // 0 9,13,18 * * * means: Minute 0 of Hours 9, 13 (1 PM), and 18 (6 PM) everyday.
 // cron.schedule("21 9,13,18,17 * * *", async () => {
