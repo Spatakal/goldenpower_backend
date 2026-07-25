@@ -25,7 +25,7 @@ import {tokenValid} from '../routes/tokenroutes.js'
 const router = express.Router();
 
 // verifyToken, adminOnly, validateMobile
-router.use('/users',verifyToken,adminOnly,userRoute);
+router.use('/users',userRoute);
 router.use('/calls',verifyToken,adminOnly,logRoute);
 router.use('/products',verifyToken,adminOnly,prdRoute);
 router.use('/sales',verifyToken,adminOnly,salRoute);
