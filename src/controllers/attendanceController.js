@@ -2,49 +2,52 @@ import supabase from "../config/supabaseclient.js";
 
 export const attendance = async (req, res) => {
   try {
-    // 1. Prioritize body parameter (for Admin POST), fallback to logged-in user (for GET)
+    // 1. Admin POST sends number in body; Employee GET uses token
     const targetNumber = req.body.number || req.user.number;
 
     if (!targetNumber) {
-      return res.status(400).json({ success: false, message: "Phone number is required." });
+      return res.status(400).json({ success: false, message: "Number is required." });
     }
 
-    // 2. Fetch user's attendance records
-    const { data, error } = await supabase
-      .from("attendance")
-      .select("*")
+    // 2. Find when the user was registered (Start Date for tracking)
+    const { data: user, error: userError } = await supabase
+      .from("users")
+      .select("created_at")
       .eq("number", targetNumber)
-      .order("attendance_date");
+      .single();
 
-    if (error) throw error;
-
-    // 3. Handle users with NO attendance records at all
-    if (!data || data.length === 0) {
-      return res.status(200).json({
-        present_dates: [],
-        absent_dates: [],
-        total_present: 0,
-        total_absent: 0,
-        attendance_percentage: 0,
-        message: "No attendance records found for this user."
+    if (userError || !user) {
+      return res.status(404).json({
+        success: false,
+        message: "Employee not found in users table."
       });
     }
 
-    const presentDates = data.map(row => row.attendance_date);
+    // 3. Fetch all logged-in (present) dates for this number
+    const { data: attendanceData, error: attenError } = await supabase
+      .from("attendance")
+      .select("attendance_date")
+      .eq("number", targetNumber)
+      .order("attendance_date");
 
-    // 4. Calculate date range from first recorded present date to today
-    const firstDate = new Date(presentDates[0]);
+    if (attenError) throw attenError;
+
+    // Array of strings: e.g. ["2026-07-25"]
+    const presentDates = attendanceData ? attendanceData.map(row => row.attendance_date) : [];
+
+    // 4. Define range from User Registration Date to Today
+    const startDate = new Date(user.created_at);
     const today = new Date();
 
     const absentDates = [];
-    for (
-      let d = new Date(firstDate);
-      d <= today;
-      d.setDate(d.getDate() + 1)
-    ) {
-      const date = d.toISOString().split("T")[0];
-      if (!presentDates.includes(date)) {
-        absentDates.push(date);
+
+    // Loop through every single calendar day
+    for (let d = new Date(startDate); d <= today; d.setDate(d.getDate() + 1)) {
+      const dateStr = d.toISOString().split("T")[0];
+
+      // If the date is NOT present in the attendance table, it's marked as absent
+      if (!presentDates.includes(dateStr)) {
+        absentDates.push(dateStr);
       }
     }
 
@@ -52,12 +55,12 @@ export const attendance = async (req, res) => {
     const totalAbsent = absentDates.length;
     const totalDays = totalPresent + totalAbsent;
 
-    const percentage =
-      totalDays === 0
-        ? 0
-        : Number(((totalPresent / totalDays) * 100).toFixed(2));
+    const percentage = totalDays === 0
+      ? 0
+      : Number(((totalPresent / totalDays) * 100).toFixed(2));
 
     return res.status(200).json({
+      number: targetNumber,
       present_dates: presentDates,
       absent_dates: absentDates,
       total_present: totalPresent,
