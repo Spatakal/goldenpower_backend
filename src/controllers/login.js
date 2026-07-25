@@ -17,14 +17,14 @@ export const Login = async (req, res) => {
     if (error || !user) {
       return res.status(401).json({
         success: false,
-        message: "Invalid user"
+        message: "Invalid Credential"
       });
     }
 
     if (user.password !== password) {
       return res.status(401).json({
         success: false,
-        message: "Invalid password"
+        message: "Invalid Credential"
       });
     }
 
