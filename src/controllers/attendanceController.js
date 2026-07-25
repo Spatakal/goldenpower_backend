@@ -1,56 +1,61 @@
 import supabase from "../config/supabaseclient.js";
 
-export const attendance = async (req, res) => { 
-
+export const attendance = async (req, res) => {
   try {
+    // 1. Prioritize body parameter (for Admin POST), fallback to logged-in user (for GET)
+    const targetNumber = req.body.number || req.user.number;
 
-    const number = req.user.number;
+    if (!targetNumber) {
+      return res.status(400).json({ success: false, message: "Phone number is required." });
+    }
 
-    const { data } = await supabase
+    // 2. Fetch user's attendance records
+    const { data, error } = await supabase
       .from("attendance")
       .select("*")
-      .eq("number", number)
+      .eq("number", targetNumber)
       .order("attendance_date");
 
-    const presentDates = data.map(
-      row => row.attendance_date
-    );
+    if (error) throw error;
 
-    const firstDate = new Date(
-      presentDates[0] || new Date()
-    );
+    // 3. Handle users with NO attendance records at all
+    if (!data || data.length === 0) {
+      return res.status(200).json({
+        present_dates: [],
+        absent_dates: [],
+        total_present: 0,
+        total_absent: 0,
+        attendance_percentage: 0,
+        message: "No attendance records found for this user."
+      });
+    }
 
+    const presentDates = data.map(row => row.attendance_date);
+
+    // 4. Calculate date range from first recorded present date to today
+    const firstDate = new Date(presentDates[0]);
     const today = new Date();
 
     const absentDates = [];
-
     for (
       let d = new Date(firstDate);
       d <= today;
       d.setDate(d.getDate() + 1)
     ) {
-
       const date = d.toISOString().split("T")[0];
-
       if (!presentDates.includes(date)) {
         absentDates.push(date);
       }
-
     }
 
     const totalPresent = presentDates.length;
     const totalAbsent = absentDates.length;
+    const totalDays = totalPresent + totalAbsent;
 
     const percentage =
-      totalPresent + totalAbsent === 0
+      totalDays === 0
         ? 0
-        : Number(
-            (
-              (totalPresent /
-                (totalPresent + totalAbsent)) *
-              100
-            ).toFixed(2)
-          );
+        : Number(((totalPresent / totalDays) * 100).toFixed(2));
 
     return res.status(200).json({
       present_dates: presentDates,
@@ -61,14 +66,11 @@ export const attendance = async (req, res) => {
     });
 
   } catch (err) {
-
     return res.status(500).json({
       success: false,
       message: err.message
     });
-
   }
-
 };
 
 export const attendanceByMonth = async (req, res) => {

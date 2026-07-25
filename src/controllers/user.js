@@ -5,6 +5,7 @@ export const getUsers = async (req, res)=>{
         const { data, error} = await supabase
         .from('users')
         .select('*')
+        .neq('role',"admin")
         .order('created_at', { ascending: false });
 
         if (error) return res.status(400).json({ error: error.message });
