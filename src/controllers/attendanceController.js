@@ -3,13 +3,13 @@ import supabase from "../config/supabaseclient.js";
 export const attendance = async (req, res) => {
   try {
     // 1. Admin POST sends number in body; Employee GET uses token
-    const targetNumber = req.body.number || req.user.number;
+    const targetNumber = req.body.number || req.user?.number;
 
     if (!targetNumber) {
       return res.status(400).json({ success: false, message: "Number is required." });
     }
 
-    // 2. Find when the user was registered (Start Date for tracking)
+    // 2. Find when the user was registered
     const { data: user, error: userError } = await supabase
       .from("users")
       .select("created_at")
@@ -23,7 +23,7 @@ export const attendance = async (req, res) => {
       });
     }
 
-    // 3. Fetch all logged-in (present) dates for this number
+    // 3. Fetch all logged-in (present) dates
     const { data: attendanceData, error: attenError } = await supabase
       .from("attendance")
       .select("attendance_date")
@@ -32,23 +32,36 @@ export const attendance = async (req, res) => {
 
     if (attenError) throw attenError;
 
-    // Array of strings: e.g. ["2026-07-25"]
     const presentDates = attendanceData ? attendanceData.map(row => row.attendance_date) : [];
 
-    // 4. Define range from User Registration Date to Today
-    const startDate = new Date(user.created_at);
-    const today = new Date();
+    // 4. Safely format local YYYY-MM-DD dates without UTC shifts
+    const formatDate = (dateObj) => {
+      const year = dateObj.getFullYear();
+      const month = String(dateObj.getMonth() + 1).padStart(2, "0");
+      const day = String(dateObj.getDate()).padStart(2, "0");
+      return `${year}-${month}-${day}`;
+    };
+
+    // Set start date and end date to midnight local time
+    const start = new Date(user.created_at);
+    start.setHours(0, 0, 0, 0);
+
+    const end = new Date();
+    end.setHours(0, 0, 0, 0);
 
     const absentDates = [];
+    const current = new Date(start);
 
-    // Loop through every single calendar day
-    for (let d = new Date(startDate); d <= today; d.setDate(d.getDate() + 1)) {
-      const dateStr = d.toISOString().split("T")[0];
+    // Loop through every single day inclusive of today
+    while (current <= end) {
+      const dateStr = formatDate(current);
 
-      // If the date is NOT present in the attendance table, it's marked as absent
       if (!presentDates.includes(dateStr)) {
         absentDates.push(dateStr);
       }
+
+      // Move to the next day safely
+      current.setDate(current.getDate() + 1);
     }
 
     const totalPresent = presentDates.length;
@@ -75,6 +88,7 @@ export const attendance = async (req, res) => {
     });
   }
 };
+
 
 export const attendanceByMonth = async (req, res) => {
   try {
