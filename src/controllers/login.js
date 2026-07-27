@@ -48,6 +48,7 @@ export const Login = async (req, res) => {
           number,
           token_hash: tokenHash,
           role: user.role,
+              user_id:user.id,
           fcm_token: fcm_token || null // Saves token if present, otherwise null
         }
       ]);
