@@ -278,7 +278,7 @@ export const updateTaskStatus = async (req, res) => {
 if (status === "done") {
   const isAssignedEmp = String(lead.assigned_to) === String(req.user.user_id);
   console.log("lead.assigned_to:", lead.assigned_to);
-  console.log("req.user.id:", req.user.user_id);
+  console.log("req.user_id:", req.user.user_id);
 
   const isAdmin = req.user.role === "admin";
 
