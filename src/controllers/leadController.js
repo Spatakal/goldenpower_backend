@@ -278,6 +278,8 @@ export const updateTaskStatus = async (req, res) => {
         if (status === "done") {
       // Checks if logged-in user is the assigned employee or an admin
       const isAssignedEmp = String(lead.assigned_to) === String(req.user.id);
+      console.log(lead.assignedTo);
+      console.log(req.user.id);
       const isAdmin = req.user.role === "admin";
 
       if (!isAssignedEmp && !isAdmin) {
