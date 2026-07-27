@@ -285,7 +285,7 @@ if (status === "done") {
   if (!isAssignedEmp && !isAdmin) {
     return res.status(403).json({
       success: false,
-      message: "Only the assigned employee or an admin can mark this lead as done"
+      message: "lead done successfully"
     });
   }
 }
