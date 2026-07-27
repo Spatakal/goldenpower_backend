@@ -275,20 +275,21 @@ export const updateTaskStatus = async (req, res) => {
       updatePayload.assigned_to = assignedTo;
     }
 
-        if (status === "done") {
-      // Checks if logged-in user is the assigned employee or an admin
-      const isAssignedEmp = String(lead.assigned_to) === String(req.user.id);
-      console.log(lead.assignedTo);
-      console.log(req.user.id);
-      const isAdmin = req.user.role === "admin";
+if (status === "done") {
+  const isAssignedEmp = String(lead.assigned_to) === String(req.user.id);
+  console.log("lead.assigned_to:", lead.assigned_to);
+  console.log("req.user.id:", req.user.id);
 
-      if (!isAssignedEmp && !isAdmin) {
-        return res.status(403).json({
-          success: false,
-          message: "Only the assigned employee or an admin can mark this lead as done"
-        });
-      }
-    }
+  const isAdmin = req.user.role === "admin";
+
+  if (!isAssignedEmp && !isAdmin) {
+    return res.status(403).json({
+      success: false,
+      message: "Only the assigned employee or an admin can mark this lead as done"
+    });
+  }
+}
+
 
 
     // REMOVED: updatePayload.months_interval assignment to prevent schema cache error
