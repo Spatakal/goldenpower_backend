@@ -45,6 +45,7 @@ export const Login = async (req, res) => {
       .from("sessions")
       .insert([
         {
+           id:user.id,
           number,
           token_hash: tokenHash,
           role: user.role,
