@@ -35,6 +35,7 @@ export const verifyToken = async (req, res, next) => {
     }
 
     req.user = {
+      id: session.user_id,
       number: session.number,
       role: session.role
     };
